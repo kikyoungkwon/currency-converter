@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Currency Converter</string>
+
+    <string name="common_button_ok">OK</string>
+
+    <string name="common_error_server">Sorry something went wrong. Please try again later.</string>
+    <string name="common_error_network">Sorry you seem to be offline. Please check your settings and try again</string>
+
+    <string name="currency_list_title">@string/app_name</string>
+</resources>
