@@ -1,14 +1,13 @@
 package com.kikyoung.currency.data.repository
 
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.kikyoung.currency.data.LocalStorage
 import com.kikyoung.currency.data.Resource
 import com.kikyoung.currency.data.mapper.CurrencyMapper
 import com.kikyoung.currency.data.service.CurrencyService
 import com.kikyoung.currency.feature.list.model.CurrencyList
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -35,7 +34,7 @@ class CurrencyRepository(
         const val KEY_BASE_CURRENCY_CODE = "base_currency_code"
     }
 
-    private val latestRatesLiveData: MutableLiveData<Resource<CurrencyList>> = MutableLiveData()
+    private val latestRatesChannel = Channel<Resource<CurrencyList>>()
 
     @VisibleForTesting
     suspend fun latestRates(currencyCode: String): CurrencyList = withContext(ioDispatcher) {
@@ -44,7 +43,7 @@ class CurrencyRepository(
 
     suspend fun pollingLatestRates() = withContext(ioDispatcher) {
         getLatestRates()?.let {
-            latestRatesLiveData.postValue(Resource.Success(it))
+            latestRatesChannel.send(Resource.Success(it))
         }
 
         while (isActive) {
@@ -53,7 +52,7 @@ class CurrencyRepository(
                 val latestRates = latestRates(baseCurrencyCode)
                 if (baseCurrencyCode == getBaseCurrencyCode()) {
                     saveLatestRates(latestRates)
-                    latestRatesLiveData.postValue(Resource.Success(getLatestRates()!!))
+                    latestRatesChannel.send(Resource.Success(getLatestRates()!!))
                 } else {
                     Timber.d("Base currency code is changed, so ignore and retry")
                 }
@@ -61,7 +60,7 @@ class CurrencyRepository(
             } catch (e: CancellationException) {
                 // Ignore
             } catch (e: Exception) {
-                latestRatesLiveData.postValue(Resource.Error(e))
+                latestRatesChannel.send(Resource.Error(e))
             }
         }
     }
@@ -80,5 +79,5 @@ class CurrencyRepository(
 
     private fun saveBaseCurrencyCode(currencyCode: String) = localStorage.put(KEY_BASE_CURRENCY_CODE, currencyCode)
 
-    fun latestRatesLiveData(): LiveData<Resource<CurrencyList>> = latestRatesLiveData
+    fun latestRatesChannel() = latestRatesChannel
 }

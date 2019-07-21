@@ -1,7 +1,6 @@
 package com.kikyoung.currency.base
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.kikyoung.currency.data.exception.NetworkException
 import com.kikyoung.currency.data.exception.ServerException
@@ -10,7 +9,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import java.net.UnknownHostException
-import java.util.*
 import java.util.concurrent.TimeoutException
 import kotlin.coroutines.CoroutineContext
 
@@ -20,8 +18,6 @@ open class BaseViewModel(private val uiDispatcher: CoroutineDispatcher) : ViewMo
 
     override val coroutineContext: CoroutineContext
         get() = (uiDispatcher + job)
-
-    private val liveDataMap = HashMap<LiveData<*>, Observer<*>>()
 
     private val serverErrorLiveData = SingleLiveEvent<ServerException>()
     private val networkErrorLiveData = SingleLiveEvent<NetworkException>()
@@ -35,18 +31,7 @@ open class BaseViewModel(private val uiDispatcher: CoroutineDispatcher) : ViewMo
         }
     }
 
-    fun <T> observeUntilCleared(liveData: LiveData<T>, observer: Observer<T>) {
-        liveDataMap[liveData] = observer
-        liveData.observeForever(observer)
-    }
-
-    private fun <T> removeObserver(liveData: LiveData<T>) {
-        liveData.removeObserver(liveDataMap[liveData] as Observer<T>)
-        liveDataMap.remove(liveData)
-    }
-
     override fun onCleared() {
-        liveDataMap.forEach { (liveData) -> removeObserver(liveData) }
         job.cancel()
         super.onCleared()
     }

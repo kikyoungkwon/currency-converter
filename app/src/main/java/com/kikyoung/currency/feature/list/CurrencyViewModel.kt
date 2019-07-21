@@ -2,12 +2,12 @@ package com.kikyoung.currency.feature.list
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.kikyoung.currency.base.BaseViewModel
 import com.kikyoung.currency.data.Resource
 import com.kikyoung.currency.data.repository.CurrencyRepository
 import com.kikyoung.currency.feature.list.model.CurrencyList
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class CurrencyViewModel(
@@ -24,13 +24,15 @@ class CurrencyViewModel(
             currencyRepository.pollingLatestRates()
         }
 
-        observeUntilCleared(currencyRepository.latestRatesLiveData(), Observer {
-            when(it) {
-                is Resource.Success -> currencyListLiveData.postValue(it.data)
-                is Resource.Error -> handleRepositoryError(it.e)
+        launch {
+            while (isActive) {
+                when(val resource = currencyRepository.latestRatesChannel().receive()) {
+                    is Resource.Success -> currencyListLiveData.postValue(resource.data)
+                    is Resource.Error -> handleRepositoryError(resource.e)
+                }
+                loadingLiveData.postValue(false)
             }
-            loadingLiveData.postValue(false)
-        })
+        }
     }
 
     fun setBaseCurrencyCode(currencyCode: String) = currencyRepository.setBaseCurrencyCode(currencyCode)
