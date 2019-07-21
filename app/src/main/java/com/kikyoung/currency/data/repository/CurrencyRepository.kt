@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.concurrent.CancellationException
 
 class CurrencyRepository(
     private val localStorage: LocalStorage,
@@ -57,6 +58,8 @@ class CurrencyRepository(
                     Timber.d("Base currency code is changed, so ignore and retry")
                 }
                 delay(DELAY_PULLING_LATEST_RATE)
+            } catch (e: CancellationException) {
+                // Ignore
             } catch (e: Exception) {
                 latestRatesLiveData.postValue(Resource.Error(e))
             }
@@ -72,7 +75,8 @@ class CurrencyRepository(
      */
     private fun saveLatestRates(latestRates: CurrencyList) = localStorage.put(KEY_LATEST_RATES, latestRates)
 
-    private fun getBaseCurrencyCode(): String = localStorage.get(KEY_BASE_CURRENCY_CODE, String::class.java, DEFAULT_BASE_CURRENCY_CODE)!!
+    private fun getBaseCurrencyCode(): String =
+        localStorage.get(KEY_BASE_CURRENCY_CODE, String::class.java, DEFAULT_BASE_CURRENCY_CODE)!!
 
     private fun saveBaseCurrencyCode(currencyCode: String) = localStorage.put(KEY_BASE_CURRENCY_CODE, currencyCode)
 
