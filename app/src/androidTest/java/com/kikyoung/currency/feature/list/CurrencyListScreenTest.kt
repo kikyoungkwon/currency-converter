@@ -35,7 +35,7 @@ class CurrencyListScreenTest : BaseScreenTest() {
         mockWebServer.setLatestCurrencyRatesResponse(RESPONSE_FILE_LATEST_SUCCESS)
         activityRule.launchActivity(null)
 
-        var viewVisibilityIdlingResource = ViewVisibilityIdlingResource(
+        val viewVisibilityIdlingResource = ViewVisibilityIdlingResource(
             activityRule.activity.findViewById<RecyclerView>(R.id.currencyListRecyclerView),
             View.VISIBLE
         )
