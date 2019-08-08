@@ -46,7 +46,7 @@ class CurrencyRepositoryTest {
         every { localStorage.get(KEY_BASE_CURRENCY_CODE, String::class.java, any()) } returns DEFAULT_BASE_CURRENCY_CODE
         every { currencyService.latest(currencyCode) } returns Single.just(currencyRates)
         every { currencyMapper.toList(currencyRates) } returns currencyList
-        CurrencyRepository(localStorage, currencyMapper, currencyService, Schedulers.computation())
+        CurrencyRepository(localStorage, currencyMapper, currencyService, Schedulers.trampoline())
             .pollingLatestRates()
             .test()
             .awaitCount(1)
