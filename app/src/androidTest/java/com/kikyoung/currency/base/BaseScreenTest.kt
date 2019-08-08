@@ -4,7 +4,7 @@ import android.os.AsyncTask
 import androidx.test.espresso.IdlingRegistry
 import com.jakewharton.espresso.OkHttp3IdlingResource
 import com.kikyoung.currency.data.TestMockWebServer
-import kotlinx.coroutines.asCoroutineDispatcher
+import io.reactivex.schedulers.Schedulers
 import org.junit.After
 import org.junit.Before
 import org.koin.core.qualifier.named
@@ -22,7 +22,7 @@ open class BaseScreenTest : KoinTest {
         IdlingRegistry.getInstance().register(okHttp3IdlingResource)
         declare {
             single(named("io"), override = true) {
-                AsyncTask.THREAD_POOL_EXECUTOR.asCoroutineDispatcher()
+                Schedulers.from(AsyncTask.THREAD_POOL_EXECUTOR)
             }
             single(named("baseUrl"), override = true) {
                 mockWebServer.getBaseUrl()

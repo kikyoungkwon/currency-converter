@@ -1,25 +1,21 @@
 package com.kikyoung.currency.data.repository
 
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.kikyoung.currency.data.LocalStorage
 import com.kikyoung.currency.data.Resource
 import com.kikyoung.currency.data.mapper.CurrencyMapper
 import com.kikyoung.currency.data.service.CurrencyService
 import com.kikyoung.currency.feature.list.model.CurrencyList
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
-import timber.log.Timber
-import java.util.concurrent.CancellationException
+import io.reactivex.Observable
+import io.reactivex.Scheduler
+import io.reactivex.Single
+import java.util.concurrent.TimeUnit
 
 class CurrencyRepository(
     private val localStorage: LocalStorage,
     private val currencyMapper: CurrencyMapper,
     private val currencyService: CurrencyService,
-    private val ioDispatcher: CoroutineDispatcher
+    private val ioScheduler: Scheduler
 ) {
 
     companion object {
@@ -35,35 +31,46 @@ class CurrencyRepository(
         const val KEY_BASE_CURRENCY_CODE = "base_currency_code"
     }
 
-    private val latestRatesLiveData: MutableLiveData<Resource<CurrencyList>> = MutableLiveData()
-
     @VisibleForTesting
-    suspend fun latestRates(currencyCode: String): CurrencyList = withContext(ioDispatcher) {
-        currencyMapper.toList(currencyService.latest(currencyCode))
+    fun latestRates(currencyCode: String): Single<CurrencyList> {
+        return currencyService.latest(currencyCode)
+            .map {
+                currencyMapper.toList(it)
+            }
     }
 
-    suspend fun pollingLatestRates() = withContext(ioDispatcher) {
-        getLatestRates()?.let {
-            latestRatesLiveData.postValue(Resource.Success(it))
-        }
-
-        while (isActive) {
-            try {
-                val baseCurrencyCode = getBaseCurrencyCode()
-                val latestRates = latestRates(baseCurrencyCode)
-                if (baseCurrencyCode == getBaseCurrencyCode()) {
-                    saveLatestRates(latestRates)
-                    latestRatesLiveData.postValue(Resource.Success(getLatestRates()!!))
-                } else {
-                    Timber.d("Base currency code is changed, so ignore and retry")
-                }
-                delay(DELAY_PULLING_LATEST_RATE)
-            } catch (e: CancellationException) {
-                // Ignore
-            } catch (e: Exception) {
-                latestRatesLiveData.postValue(Resource.Error(e))
+    private fun currencyList(): Observable<Resource<CurrencyList>> {
+        val baseCurrencyCode = getBaseCurrencyCode()
+        return latestRates(baseCurrencyCode).toObservable()
+            // If base currency code is changed, ignore and retry
+            .filter {
+                baseCurrencyCode == getBaseCurrencyCode()
             }
-        }
+            .doOnNext { currencyList ->
+                saveLatestRates(currencyList)
+            }
+            .map<Resource<CurrencyList>> { currencyList ->
+                Resource.Success(currencyList)
+            }
+            .onErrorResumeNext { t: Throwable ->
+                Observable.just(Resource.Error(t))
+            }
+    }
+
+    fun pollingLatestRates(): Observable<Resource<CurrencyList>> {
+        return Observable.interval(DELAY_PULLING_LATEST_RATE, TimeUnit.MILLISECONDS)
+            .flatMap {
+                currencyList()
+            }
+            .startWith(cachedCurrencyListObservable())
+            .subscribeOn(ioScheduler)
+    }
+
+    private fun cachedCurrencyListObservable(): Observable<Resource<CurrencyList>> {
+        val latestRates = getLatestRates()
+        return if (latestRates != null)
+            Observable.just(Resource.Success(latestRates))
+        else Observable.empty()
     }
 
     fun setBaseCurrencyCode(currencyCode: String) = saveBaseCurrencyCode(currencyCode)
@@ -79,6 +86,4 @@ class CurrencyRepository(
         localStorage.get(KEY_BASE_CURRENCY_CODE, String::class.java, DEFAULT_BASE_CURRENCY_CODE)!!
 
     private fun saveBaseCurrencyCode(currencyCode: String) = localStorage.put(KEY_BASE_CURRENCY_CODE, currencyCode)
-
-    fun latestRatesLiveData(): LiveData<Resource<CurrencyList>> = latestRatesLiveData
 }

@@ -9,7 +9,7 @@ Theory without practice is empty, practice without theory is blind.
 <img src="screenshots/04.png" width="150">
 
 ## Dependency
-- Kotlin, MVVM, Koin, Coroutines, Retrofit2, Androidx, Architecture Components
+- Kotlin, MVVM, Koin, Rxjava2, Retrofit2, Androidx, Architecture Components
 
 ## TODO
 - Modular approach

@@ -1,18 +1,12 @@
 package com.kikyoung.currency.data.service
 
-import com.google.gson.Gson
 import com.kikyoung.currency.data.api.Api
 import com.kikyoung.currency.data.model.CurrencyRates
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
+import io.reactivex.Single
 
 class CurrencyService(
-    gson: Gson,
-    private val api: Api,
-    private val ioDispatcher: CoroutineDispatcher
-) : BaseService(gson, ioDispatcher) {
+    private val api: Api
+) : BaseService() {
 
-    suspend fun latest(currencyCode: String): CurrencyRates = withContext(ioDispatcher) {
-        execute { api.latest(currencyCode) }
-    }
+    fun latest(currencyCode: String): Single<CurrencyRates> = api.latest(currencyCode)
 }

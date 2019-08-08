@@ -26,7 +26,7 @@ class BaseApplication : Application() {
             androidContext(this@BaseApplication)
             modules(
                 listOf(
-                    coroutinesModule,
+                    rxModule,
                     storageModule,
                     networkModule,
                     servicesModule,
