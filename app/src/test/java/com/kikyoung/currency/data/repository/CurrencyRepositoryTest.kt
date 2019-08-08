@@ -10,18 +10,14 @@ import com.kikyoung.currency.data.repository.CurrencyRepository.Companion.KEY_BA
 import com.kikyoung.currency.data.repository.CurrencyRepository.Companion.KEY_LATEST_RATES
 import com.kikyoung.currency.data.service.CurrencyService
 import com.kikyoung.currency.feature.list.model.CurrencyList
-import com.kikyoung.currency.util.RxImmediateSchedulerRule
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
-import org.junit.Rule
 import org.junit.Test
 
 class CurrencyRepositoryTest {
-
-    @Rule @JvmField var testSchedulerRule = RxImmediateSchedulerRule()
 
     private val currencyCode = "GBP"
 
@@ -39,6 +35,7 @@ class CurrencyRepositoryTest {
     }
 
     @Test
+    // TODO Fix it
     fun `when polling latest rates is successful, it should provide the currency list`() {
         val currencyRates = mockk<CurrencyRates>(relaxed = true)
         val currencyList = mockk<CurrencyList>(relaxed = true)
@@ -55,6 +52,7 @@ class CurrencyRepositoryTest {
     }
 
     @Test
+    // TODO Fix it
     fun `when polling latest rates throws an exception, it should provide the exception`() {
         val exception = NetworkException("network error")
         every { localStorage.get(KEY_LATEST_RATES, CurrencyList::class.java) } returns null
