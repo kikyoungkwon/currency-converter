@@ -8,7 +8,6 @@ import com.kikyoung.currency.data.service.CurrencyService
 import com.kikyoung.currency.feature.list.model.CurrencyList
 import io.reactivex.Observable
 import io.reactivex.Scheduler
-import io.reactivex.Single
 import java.util.concurrent.TimeUnit
 
 class CurrencyRepository(
@@ -32,44 +31,28 @@ class CurrencyRepository(
     }
 
     @VisibleForTesting
-    fun latestRates(currencyCode: String): Single<CurrencyList> {
-        return currencyService.latest(currencyCode)
-            .map {
-                currencyMapper.toList(it)
-            }
-    }
+    fun latestRates(currencyCode: String) = currencyService.latest(currencyCode).map { currencyMapper.toList(it) }
 
-    private fun currencyList(): Observable<Resource<CurrencyList>> {
-        val baseCurrencyCode = getBaseCurrencyCode()
-        return latestRates(baseCurrencyCode).toObservable()
+    @VisibleForTesting
+    fun currencyList(currencyCode: String): Observable<Resource<CurrencyList>> {
+        return latestRates(currencyCode).toObservable()
             // If base currency code is changed, ignore and retry
-            .filter {
-                baseCurrencyCode == getBaseCurrencyCode()
-            }
-            .doOnNext { currencyList ->
-                saveLatestRates(currencyList)
-            }
-            .map<Resource<CurrencyList>> { currencyList ->
-                Resource.Success(currencyList)
-            }
-            .onErrorResumeNext { t: Throwable ->
-                Observable.just(Resource.Error(t))
-            }
+            .filter { currencyCode == getBaseCurrencyCode() }
+            .doOnNext { currencyList -> saveLatestRates(currencyList) }
+            .map<Resource<CurrencyList>> { currencyList -> Resource.Success(currencyList) }
+            .onErrorResumeNext { t: Throwable -> Observable.just(Resource.Error(t)) }
     }
 
     fun pollingLatestRates(): Observable<Resource<CurrencyList>> {
-        return Observable.interval(DELAY_PULLING_LATEST_RATE, TimeUnit.MILLISECONDS)
-            .flatMap {
-                currencyList()
-            }
+        return Observable.interval(DELAY_PULLING_LATEST_RATE, TimeUnit.MILLISECONDS, ioScheduler)
+            .flatMap { currencyList(getBaseCurrencyCode()) }
             .startWith(cachedCurrencyListObservable())
             .subscribeOn(ioScheduler)
     }
 
     private fun cachedCurrencyListObservable(): Observable<Resource<CurrencyList>> {
         val latestRates = getLatestRates()
-        return if (latestRates != null)
-            Observable.just(Resource.Success(latestRates))
+        return if (latestRates != null) Observable.just(Resource.Success(latestRates))
         else Observable.empty()
     }
 
