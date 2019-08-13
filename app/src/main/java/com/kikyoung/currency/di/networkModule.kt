@@ -1,20 +1,20 @@
 package com.kikyoung.currency.di
 
 import android.content.Context
-import com.google.gson.Gson
 import com.kikyoung.currency.BuildConfig
 import com.kikyoung.currency.R
 import com.kikyoung.currency.data.api.Api
+import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.moshi.MoshiConverterFactory
 
 val networkModule = module {
-    single { Gson() }
+    single { Moshi.Builder().build() }
     single { api(get()) }
     single { retrofit(get(named("baseUrl")), get()) }
     single { okHttpClient(get()) }
@@ -28,7 +28,7 @@ private fun api(retrofit: Retrofit): Api =
 private fun retrofit(baseUrl: String, okHttpClient: OkHttpClient): Retrofit {
     return Retrofit.Builder()
         .baseUrl(baseUrl)
-        .addConverterFactory(GsonConverterFactory.create())
+        .addConverterFactory(MoshiConverterFactory.create())
         .client(okHttpClient)
         .build()
 }

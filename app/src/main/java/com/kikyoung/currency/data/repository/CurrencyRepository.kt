@@ -73,12 +73,12 @@ class CurrencyRepository(
     /**
      * Order of list is not saved.
      */
-    private fun saveLatestRates(latestRates: CurrencyList) = localStorage.put(KEY_LATEST_RATES, latestRates)
+    private fun saveLatestRates(latestRates: CurrencyList) = localStorage.put(KEY_LATEST_RATES, CurrencyList::class.java, latestRates)
 
     private fun getBaseCurrencyCode(): String =
         localStorage.get(KEY_BASE_CURRENCY_CODE, String::class.java, DEFAULT_BASE_CURRENCY_CODE)!!
 
-    private fun saveBaseCurrencyCode(currencyCode: String) = localStorage.put(KEY_BASE_CURRENCY_CODE, currencyCode)
+    private fun saveBaseCurrencyCode(currencyCode: String) = localStorage.put(KEY_BASE_CURRENCY_CODE, String::class.java, currencyCode)
 
     fun latestRatesLiveData(): LiveData<Resource<CurrencyList>> = latestRatesLiveData
 }

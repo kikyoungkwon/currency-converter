@@ -2,12 +2,12 @@ package com.kikyoung.currency.data
 
 import android.content.Context
 import androidx.core.content.edit
-import com.google.gson.Gson
+import com.squareup.moshi.Moshi
 
 /**
  * TODO Use Room instead of SharedPreferences
  */
-class LocalStorage(context: Context, private val gson: Gson) {
+class LocalStorage(context: Context, private val moshi: Moshi) {
 
     companion object {
         private const val NAME = "localStorage"
@@ -15,16 +15,16 @@ class LocalStorage(context: Context, private val gson: Gson) {
 
     private val sharedPreferences = context.getSharedPreferences(NAME, Context.MODE_PRIVATE)
 
-    fun put(key: String, any: Any?) {
+    fun <T> put(key: String, type: Class<T>, value: T?) {
         sharedPreferences.edit {
-            putString(key, gson.toJson(any))
+            putString(key, moshi.adapter(type).toJson(value))
         }
     }
 
     fun <T> get(key: String, type: Class<T>, defaultValue: T? = null): T? {
         return try {
-            sharedPreferences.getString(key, gson.toJson(defaultValue))?.let {
-                gson.fromJson(it, type)
+            sharedPreferences.getString(key, moshi.adapter(type).toJson(defaultValue))?.let {
+                moshi.adapter(type).fromJson(it)
             }
         } catch (e: Exception) {
             null

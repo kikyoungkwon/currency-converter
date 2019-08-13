@@ -1,10 +1,10 @@
 package com.kikyoung.currency.data.service
 
-import com.google.gson.Gson
 import com.kikyoung.currency.data.api.Api
 import com.kikyoung.currency.data.exception.ServerException
 import com.kikyoung.currency.data.model.CurrencyRates
 import com.kikyoung.currency.data.repository.CurrencyRepository.Companion.DEFAULT_BASE_CURRENCY_CODE
+import com.squareup.moshi.Moshi
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -25,7 +25,7 @@ class CurrencyServiceTest {
 
     @Before
     fun before() {
-        currencyService = CurrencyService(Gson(), apiService, ioDispatcher)
+        currencyService = CurrencyService(Moshi.Builder().build(), apiService, ioDispatcher)
     }
 
     @Test
@@ -43,7 +43,7 @@ class CurrencyServiceTest {
         val response = mockk<Response<CurrencyRates>>()
         every { response.isSuccessful } returns false
         every { response.code() } returns 500
-        every { response.errorBody()?.string() } returns "{\"error\":\"message\"}"
+        every { response.errorBody().toString() } returns "{\"error\":\"message\"}"
         coEvery { apiService.latest(any()) } returns response
         currencyService.latest(DEFAULT_BASE_CURRENCY_CODE)
     }
