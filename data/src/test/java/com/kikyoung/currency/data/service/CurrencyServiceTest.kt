@@ -8,7 +8,7 @@ import com.squareup.moshi.Moshi
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import junit.framework.TestCase
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -35,7 +35,7 @@ class CurrencyServiceTest {
         every { response.isSuccessful } returns true
         every { response.body() } returns responseBody
         coEvery { apiService.latest(any()) } returns response
-        TestCase.assertEquals(currencyService.latest(DEFAULT_BASE_CURRENCY_CODE), responseBody)
+        assertEquals(currencyService.latest(DEFAULT_BASE_CURRENCY_CODE), responseBody)
     }
 
     @Test(expected = ServerException::class)
