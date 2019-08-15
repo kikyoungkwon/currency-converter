@@ -8,7 +8,7 @@ android {
     defaultConfig {
         applicationId "com.kikyoung.currency"
         minSdkVersion rootProject.minSdkVersion
-        targetSdkVersion rootProject.compileSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
         versionCode 1
         versionName "0.0.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -54,44 +54,48 @@ dependencies {
     implementation project(":data")
 
     // Support
-    implementation "androidx.navigation:navigation-fragment:$androidx_nav_version"
-    implementation "androidx.navigation:navigation-ui:$androidx_nav_version"
-    implementation "androidx.constraintlayout:constraintlayout:$androidx_constraintlayout_version"
+    implementation libs.androidx_navigation_fragment
+    implementation libs.androidx_navigation_ui
+    implementation libs.androidx_constraintlayout
 
     // Image Handling
-    implementation "com.github.bumptech.glide:glide:$glide_version"
-    annotationProcessor "com.github.bumptech.glide:compiler:$glide_version"
+    implementation libs.glide
+    annotationProcessor libs.glide_comiler
 
     // Networking
-    implementation "com.squareup.retrofit2:converter-moshi:$retrofit2_version"
-    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp3_version"
+    implementation libs.retrofit2_converter_moshi
+    implementation libs.okhttp3_logging_interceptor
 
     // Log
-    implementation "com.jakewharton.timber:timber:$timber_version"
+    implementation libs.timber
+
+    // Coroutines
+    implementation libs.coroutines_core
+    implementation libs.coroutines_android
 
     // Koin
-    implementation "org.koin:koin-androidx-viewmodel:$koin_version"
-    testImplementation("org.koin:koin-test:$koin_version") { exclude group: 'org.mockito' }
-    androidTestImplementation("org.koin:koin-test:$koin_version") { exclude group: 'org.mockito' }
+    implementation libs.koin_androidx_viewmodel
+    testImplementation(libs.koin_test) { exclude group: 'org.mockito' }
+    androidTestImplementation(libs.koin_test) { exclude group: 'org.mockito' }
 
     // Memory leak detection
-    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakcanary_version"
+    debugImplementation libs.leakcanary_android
 
     // Test
-    testImplementation "androidx.test:rules:$androidx_test_version"
-    androidTestImplementation "androidx.test:rules:$androidx_test_version"
-    testImplementation "androidx.test.espresso:espresso-core:$androidx_espresso_version"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$androidx_espresso_version"
-    testImplementation "androidx.test.ext:junit:$androidx_test_ext_version"
-    testImplementation "org.robolectric:robolectric:$robolectric_version"
-    testImplementation "android.arch.core:core-testing:$arch_core_testing_version"
-    debugImplementation("androidx.fragment:fragment-testing:$androidx_fragment_testing_versopm") {
+    testImplementation libs.androidx_test_rules
+    androidTestImplementation libs.androidx_test_rules
+    testImplementation libs.androidx_espresso_core
+    androidTestImplementation libs.androidx_espresso_core
+    testImplementation libs.androidx_test_ext_junit
+    testImplementation libs.robolectric
+    testImplementation libs.android_arch_core_testing
+    debugImplementation(libs.androidx_fragment_testing) {
         exclude group: 'androidx.test'
     }
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_test_junit_version"
-    androidTestImplementation("com.squareup.okhttp3:mockwebserver:$mockwebserver_version")
-    androidTestCompile "com.jakewharton.espresso:okhttp3-idling-resource:$okhttp3_idling_resource_version"
+    testImplementation libs.kotlin_test_junit
+    androidTestImplementation libs.mockwebserver
+    androidTestCompile libs.okhttp3_idling_resource
 
     // Mock
-    testImplementation "io.mockk:mockk:$mockk_version"
+    testImplementation libs.mockk
 }

@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         minSdkVersion rootProject.minSdkVersion
-        targetSdkVersion rootProject.compileSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -25,32 +25,32 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // Support
-    implementation "androidx.lifecycle:lifecycle-viewmodel:$androidx_lifecycle_version"
-    implementation "androidx.lifecycle:lifecycle-extensions:$androidx_lifecycle_version"
-    implementation "androidx.core:core-ktx:$androidx_core_ktx_version"
+    implementation libs.androidx_lifecycle_viewmodel
+    implementation libs.androidx_lifecycle_extensions
+    implementation libs.androidx_core_ktx
 
     // Money convert
-    implementation "org.joda:joda-money:$joda_money_version"
+    implementation libs.joda_money
 
     // Coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+    implementation libs.coroutines_core
+    implementation libs.coroutines_android
 
     // Networking
-    implementation "com.squareup.retrofit2:converter-moshi:$retrofit2_version"
+    implementation libs.retrofit2_converter_moshi
 
     // Log
-    implementation "com.jakewharton.timber:timber:$timber_version"
+    implementation libs.timber
 
     // Koin
-    testImplementation("org.koin:koin-test:$koin_version") { exclude group: 'org.mockito' }
+    testImplementation(libs.koin_test) { exclude group: 'org.mockito' }
 
     // Test
-    testImplementation "androidx.test.ext:junit:$androidx_test_ext_version"
-    testImplementation "org.robolectric:robolectric:$robolectric_version"
-    testImplementation "android.arch.core:core-testing:$arch_core_testing_version"
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_test_junit_version"
+    testImplementation libs.androidx_test_ext_junit
+    testImplementation libs.robolectric
+    testImplementation libs.android_arch_core_testing
+    testImplementation libs.kotlin_test_junit
 
     // Mock
-    testImplementation "io.mockk:mockk:$mockk_version"
+    testImplementation libs.mockk
 }
