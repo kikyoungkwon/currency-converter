@@ -1,8 +1,6 @@
 package com.kikyoung.currency.data.repository
 
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.kikyoung.currency.data.LocalStorage
 import com.kikyoung.currency.data.Resource
 import com.kikyoung.currency.data.mapper.CurrencyMapper
@@ -10,7 +8,8 @@ import com.kikyoung.currency.data.service.CurrencyService
 import com.kikyoung.currency.feature.list.model.CurrencyList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.concurrent.CancellationException
@@ -35,36 +34,35 @@ class CurrencyRepository(
         const val KEY_BASE_CURRENCY_CODE = "base_currency_code"
     }
 
-    private val latestRatesLiveData: MutableLiveData<Resource<CurrencyList>> = MutableLiveData()
-
     @VisibleForTesting
     suspend fun latestRates(currencyCode: String): CurrencyList = withContext(ioDispatcher) {
         currencyMapper.toList(currencyService.latest(currencyCode))
     }
 
-    suspend fun pollingLatestRates() = withContext(ioDispatcher) {
+    fun pollingLatestRates() = flow<Resource<CurrencyList>> {
         getLatestRates()?.let {
-            latestRatesLiveData.postValue(Resource.Success(it))
+            emit(Resource.Success(it))
         }
 
-        while (isActive) {
+        while (true) {
             try {
                 val baseCurrencyCode = getBaseCurrencyCode()
                 val latestRates = latestRates(baseCurrencyCode)
                 if (baseCurrencyCode == getBaseCurrencyCode()) {
                     saveLatestRates(latestRates)
-                    latestRatesLiveData.postValue(Resource.Success(getLatestRates()!!))
+                    emit(Resource.Success(getLatestRates()!!))
                 } else {
                     Timber.d("Base currency code is changed, so ignore and retry")
                 }
                 delay(DELAY_PULLING_LATEST_RATE)
             } catch (e: CancellationException) {
-                // Ignore
+                Timber.d("Polling latest rates is cancelled")
+                break
             } catch (e: Exception) {
-                latestRatesLiveData.postValue(Resource.Error(e))
+                emit(Resource.Error(e))
             }
         }
-    }
+    }.flowOn(ioDispatcher)
 
     fun setBaseCurrencyCode(currencyCode: String) = saveBaseCurrencyCode(currencyCode)
 
@@ -73,12 +71,12 @@ class CurrencyRepository(
     /**
      * Order of list is not saved.
      */
-    private fun saveLatestRates(latestRates: CurrencyList) = localStorage.put(KEY_LATEST_RATES, CurrencyList::class.java, latestRates)
+    private fun saveLatestRates(latestRates: CurrencyList) =
+        localStorage.put(KEY_LATEST_RATES, CurrencyList::class.java, latestRates)
 
     private fun getBaseCurrencyCode(): String =
         localStorage.get(KEY_BASE_CURRENCY_CODE, String::class.java, DEFAULT_BASE_CURRENCY_CODE)!!
 
-    private fun saveBaseCurrencyCode(currencyCode: String) = localStorage.put(KEY_BASE_CURRENCY_CODE, String::class.java, currencyCode)
-
-    fun latestRatesLiveData(): LiveData<Resource<CurrencyList>> = latestRatesLiveData
+    private fun saveBaseCurrencyCode(currencyCode: String) =
+        localStorage.put(KEY_BASE_CURRENCY_CODE, String::class.java, currencyCode)
 }

@@ -3,8 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/currency-converter.iml" filepath="$PROJECT_DIR$/.idea/currency-converter.iml" />
       <module fileurl="file://$PROJECT_DIR$/currency-converter.iml" filepath="$PROJECT_DIR$/currency-converter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/git-currency-converter.iml" filepath="$PROJECT_DIR$/git-currency-converter.iml" />
     </modules>
   </component>
 </project>
