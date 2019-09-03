@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/currency-converter.iml" filepath="$PROJECT_DIR$/.idea/currency-converter.iml" />
-      <module fileurl="file://$PROJECT_DIR$/currency-converter.iml" filepath="$PROJECT_DIR$/currency-converter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/data/currency-converter-data.iml" filepath="$PROJECT_DIR$/data/currency-converter-data.iml" />
       <module fileurl="file://$PROJECT_DIR$/data/data.iml" filepath="$PROJECT_DIR$/data/data.iml" />
     </modules>
   </component>
