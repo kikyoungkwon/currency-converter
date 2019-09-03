@@ -15,7 +15,6 @@ import com.kikyoung.currency.feature.list.model.CurrencyList
 import io.mockk.*
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.*
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
@@ -26,7 +25,7 @@ class CurrencyRepositoryTest {
     @JvmField
     var rule: TestRule = InstantTaskExecutorRule()
 
-    private val currencyCode = "GBP"
+    private val currencyCode = DEFAULT_BASE_CURRENCY_CODE
 
     private val localStorage = mockk<LocalStorage>(relaxed = true)
     private val currencyMapper = mockk<CurrencyMapper>(relaxed = true)
@@ -44,7 +43,6 @@ class CurrencyRepositoryTest {
     }
 
     @Test
-    @Ignore // Fix ClassCastException
     fun `when polling latest rates is successful, it should provide the currency list`() = runBlocking {
         val currencyRates = mockk<CurrencyRates>(relaxed = true)
         val currencyList = mockk<CurrencyList>(relaxed = true)
@@ -54,7 +52,7 @@ class CurrencyRepositoryTest {
                 KEY_BASE_CURRENCY_CODE, String::class.java,
                 any()
             )
-        } returns DEFAULT_BASE_CURRENCY_CODE
+        } returns currencyCode
         coEvery { currencyService.latest(currencyCode) } returns currencyRates
         every { currencyMapper.toList(currencyRates) } returns currencyList
         val currencyRepository = CurrencyRepository(localStorage, currencyMapper, currencyService, ioDispatcher)
@@ -73,7 +71,6 @@ class CurrencyRepositoryTest {
     }
 
     @Test
-    @Ignore // Fix ClassCastException
     fun `when polling latest rates throws an exception, it should throw it`() = runBlocking {
         val exception = NetworkException("network error")
         every { localStorage.get(CurrencyRepository.KEY_LATEST_RATES, CurrencyList::class.java) } returns null
@@ -82,7 +79,7 @@ class CurrencyRepositoryTest {
                 KEY_BASE_CURRENCY_CODE, String::class.java,
                 any()
             )
-        } returns DEFAULT_BASE_CURRENCY_CODE
+        } returns currencyCode
         coEvery { currencyService.latest(currencyCode) } throws exception
         val currencyRepository = CurrencyRepository(localStorage, currencyMapper, currencyService, ioDispatcher)
         val job = GlobalScope.launch {
