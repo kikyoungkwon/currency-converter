@@ -17,7 +17,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.collect
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
@@ -56,15 +56,18 @@ class CurrencyRepositoryTest {
                 any()
             )
         } returns DEFAULT_BASE_CURRENCY_CODE
-        coEvery { currencyService.latest(currencyCode) } returns currencyRates
+        coEvery { currencyService.latest(DEFAULT_BASE_CURRENCY_CODE) } returns currencyRates
         every { currencyMapper.toList(currencyRates) } returns currencyList
         val currencyRepository = CurrencyRepository(localStorage, currencyMapper, currencyService, ioDispatcher)
+        val list = mutableListOf<Resource<CurrencyList>>()
         val job = GlobalScope.launch {
-            currencyRepository.pollingLatestRates()
+            currencyRepository.pollingLatestRates().collect { value ->
+                list.add(value)
+            }
         }
         delay(DELAY_PULLING_LATEST_RATE * 2)
         job.cancel()
-        assertEquals((currencyRepository.pollingLatestRates().toList()[0] as Resource.Success).data, currencyList)
+        assertEquals(currencyList, (list[0] as Resource.Success).data)
     }
 
     @Test
@@ -77,13 +80,16 @@ class CurrencyRepositoryTest {
                 any()
             )
         } returns DEFAULT_BASE_CURRENCY_CODE
-        coEvery { currencyService.latest(currencyCode) } throws exception
+        coEvery { currencyService.latest(DEFAULT_BASE_CURRENCY_CODE) } throws exception
         val currencyRepository = CurrencyRepository(localStorage, currencyMapper, currencyService, ioDispatcher)
+        val list = mutableListOf<Resource<CurrencyList>>()
         val job = GlobalScope.launch {
-            currencyRepository.pollingLatestRates()
+            currencyRepository.pollingLatestRates().collect { value ->
+                list.add(value)
+            }
         }
         delay(DELAY_PULLING_LATEST_RATE * 2)
         job.cancel()
-        assertEquals((currencyRepository.pollingLatestRates().toList()[0] as Resource.Error).e, exception)
+        assertEquals(exception, (list[0] as Resource.Error).e)
     }
 }
